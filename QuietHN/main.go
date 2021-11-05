@@ -50,47 +50,6 @@ func handler(numStories int, tpl *template.Template) http.HandlerFunc {
 			siteCache.CachedStories = sortedStories
 			siteCache.Valid = true
 		}
-		/*
-			var client hn.Client
-			ids, err := client.TopItems()
-			if err != nil {
-				http.Error(w, "Failed to load top stories", http.StatusInternalServerError)
-				return
-			}
-			stories := make(map[int]item)
-			var totalStories = 0
-			var lockNumStories sync.Mutex
-			var lockStories sync.Mutex
-			var toWorkers = workerAttr{
-				Client:       client,
-				TotalStories: &totalStories,
-				NumStories:   numStories,
-				Ids:          ids,
-				Stories:      &stories,
-				muNumStories: &lockNumStories,
-				muStories:    &lockStories,
-			}
-
-			results := make(chan int, numWorkers)
-
-			for i := 0; i < numWorkers; i++ {
-				go worker(toWorkers, i, results)
-			}
-
-			for i := 0; i < numWorkers; i++ {
-				<-results
-			}
-
-			keys := make([]int, 0)
-			sortedStories := make([]item, 0)
-			for k := range stories {
-				keys = append(keys, k)
-			}
-
-			sort.Ints(keys)
-			for _, v := range keys {
-				sortedStories = append(sortedStories, stories[v])
-			}*/
 
 		data := templateData{
 			Stories: siteCache.CachedStories[:30],
