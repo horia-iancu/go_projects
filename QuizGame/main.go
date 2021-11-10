@@ -16,22 +16,33 @@ type QuizElem struct {
 	Answer   string
 }
 
-func runQuiz(quiz []QuizElem, score *int) {
+func runQuiz(quiz []QuizElem, score *int, questionTimer time.Duration, finished chan<- int) {
 	totalQuestions := len(quiz)
+	ch := make(chan string)
 	for i := 0; i < totalQuestions; i++ {
 		fmt.Printf("Question #%v: %v = ", i, quiz[i].Question)
-		answer := ""
-		fmt.Scan(&answer)
-		if answer == quiz[i].Answer {
-			*score += 1
+		go func() {
+			answ := ""
+			fmt.Scan(&answ)
+			ch <- answ
+		}()
+		select {
+		case answer := <-ch:
+			if answer == quiz[i].Answer {
+				*score += 1
+			}
+		case <-time.After(questionTimer * time.Second):
+			fmt.Println()
 		}
 	}
+	close(ch)
+	finished <- 1
+	close(finished)
 }
 
 func main() {
 	docName := flag.String("path", "problems.csv", "Path to quiz")
-	setTimer := flag.Int("timer", 30, "Number of seconds")
-
+	setQuestionTimer := flag.Int("questionTimer", 5, "Number of seconds")
 	flag.Parse()
 
 	csvFile, _ := os.Open(*docName)
@@ -58,9 +69,9 @@ func main() {
 	fmt.Println("Press <ANY KEY> to start the quiz")
 	fmt.Scanln()
 
-	go runQuiz(quiz, &correct)
-	timer1 := time.NewTimer(time.Duration(*setTimer) * time.Second)
-	<-timer1.C
+	finished := make(chan int)
 
+	go runQuiz(quiz, &correct, time.Duration(*setQuestionTimer), finished)
+	<-finished
 	fmt.Printf("\nYou scored %v out of %v\n", correct, totalQuestions)
 }
