@@ -1,3 +1,3 @@
 Testing git merge conflicts.
 
-This is a test line.
+This line is a local change.
